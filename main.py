@@ -1,30 +1,41 @@
+# importing the module 
+import cv2
 import numpy as np
-import cv2 as cv
 
+source = cv2.VideoCapture('data/10_1-Vid2.mp4')
 
-cap = cv.VideoCapture('10_1-Vid2.mp4')
-fourcc = cv.VideoWriter_fourcc(*'MP4V')
-out = cv.VideoWriter('output.mp4', fourcc, 30.0, (1620, 1080))
+# We need to set resolutions. 
+# so, convert them from float to integer. 
+frame_width = int(source.get(3))
+frame_height = int(source.get(4))
 
+size = (frame_width, frame_height)
 
+result = cv2.VideoWriter('data/output/output.mp4',
+                         cv2.VideoWriter_fourcc(*'MP4V'),
+                         10, size, 0)
+
+# running the loop 
 while True:
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    # if frame is read correctly ret is True
-    if not ret:
-        print("Can't receive frame (stream end?). Exiting ...")
-        break
-    # Our operations on the frame come here
-    gray = cv.cvtColor(frame, cv.COLOR_RGB2GRAY)
-    # Display the resulting frame
-    cv.imshow('frame', gray)
 
-    # write the flipped frame
-    out.write(frame)
-
-    if cv.waitKey(1) == ord('q'):
+    # extracting the frames 
+    ret, img = source.read()
+    if img is None:
         break
-# When everything done, release the capture
-cap.release()
-out.release()
-cv.destroyAllWindows()
+    # converting to gray-scale 
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # write to gray-scale 
+    result.write(gray)
+
+    # displaying the video 
+    cv2.imshow("Live", gray)
+
+    # exiting the loop 
+    key = cv2.waitKey(1)
+    if key == ord("q"):
+        break
+
+# closing the window 
+cv2.destroyAllWindows()
+source.release()
