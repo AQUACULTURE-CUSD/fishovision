@@ -2,8 +2,9 @@
 import cv2
 import numpy as np
 
-source = cv2.VideoCapture('data/10_1-Vid2.mp4')
 
+source = cv2.VideoCapture('data/10_1-Vid2.mp4')
+print(source.get(cv2.CAP_PROP_FPS))
 # We need to set resolutions. 
 # so, convert them from float to integer. 
 frame_width = int(source.get(3))
@@ -13,7 +14,7 @@ size = (frame_width, frame_height)
 
 result = cv2.VideoWriter('data/output/output.mp4',
                          cv2.VideoWriter_fourcc(*'MP4V'),
-                         10, size, 0)
+                         30, size, 0)
 
 # running the loop 
 while True:
