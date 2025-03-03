@@ -4,9 +4,32 @@ import numpy as np
 import os
 
 
+# Function to extract frames, could be streamlined 
 # split up a video into a collection of images 
 # video_path = "/Users/lieselwong/Documents/fishovision/data/10_1-Vid2.mp4"
 # output_path = "/Users/lieselwong/Documents/fishovision/data/output"
+# NOT RETURNING CORRECTLY !! DOES NOT WORK!!!! 
+frames = []
+# return empty array if it doesn't work 
+def get_images_builtIn(): 
+    video_path = os.path.join(os.getcwd(), "data/10_1-Vid2.mp4")
+    cap = cv2.VideoCapture(video_path)
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frames.append(frame)  # frame is a numpy.ndarray
+
+    cap.release()
+    if frames is None and len(frames) == 0:
+        print(type(frames[0]))  # Output: <class 'numpy.ndarray'>
+        print(frames[0].shape)  # Example Output: (1080, 1920, 3)
+        print(frames[0].dtype)  # Typically: uint8
+        return frame
+    else: 
+        return []
+
 def get_images(video_path, output_folder, frame_interval=5):
     """
     Extracts frames from a video and saves them as images.
@@ -91,4 +114,6 @@ while True:
 cv2.destroyAllWindows()
 source.release()
 
+# frames = get_images_builtIn()
+# print(frames)
 get_images(video_path="data/10_1-Vid2.mp4", output_folder="data/frames", frame_interval=5)
