@@ -54,27 +54,32 @@ def get_images(video_path, output_folder, frame_interval=5):
 # get_images(frame_interval=5)
 
 source = cv2.VideoCapture('data/10_1-Vid2.mp4')
-print(source.get(cv2.CAP_PROP_FPS))
-# We need to set resolutions. 
+
+# We need to set resolutions.
 # so, convert them from float to integer. 
 frame_width = int(source.get(3))
 frame_height = int(source.get(4))
 
 size = (frame_width, frame_height)
 
-result = cv2.VideoWriter('data/output/output.mp4',
+video_name = input()
+result = cv2.VideoWriter('data/output/'+video_name+".mp4",
                          cv2.VideoWriter_fourcc(*'MP4V'),
                          30, size, 0)
 
 # running the loop to convert frames to grayscale 
+
 while True:
 
     # extracting the frames 
     ret, img = source.read()
     if img is None:
         break
-    # converting to gray-scale 
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # converting to gray-scale
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    value = 42  # whatever value you want to add
+    hsv[:, :, 2] = cv2.add(hsv[:, :, 2], value)
+    gray = hsv[:, :, 2]
 
     # write to gray-scale 
     result.write(gray)
@@ -92,3 +97,4 @@ cv2.destroyAllWindows()
 source.release()
 
 get_images(video_path="data/10_1-Vid2.mp4", output_folder="data/frames", frame_interval=5)
+
