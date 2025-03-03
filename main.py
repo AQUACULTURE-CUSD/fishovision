@@ -27,7 +27,7 @@ while True:
         break
     # converting to gray-scale
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    value = 42  # whatever value you want to add
+    value = 60  # whatever value you want to add
     hsv[:, :, 2] = cv2.add(hsv[:, :, 2], value)
     gray = hsv[:, :, 2]
 
