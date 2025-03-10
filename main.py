@@ -62,13 +62,14 @@ frame_height = int(source.get(4))
 
 size = (frame_width, frame_height)
 
+
 video_name = input()
 result = cv2.VideoWriter('data/output/'+video_name+".mp4",
                          cv2.VideoWriter_fourcc(*'MP4V'),
                          30, size, 0)
 
 # running the loop to convert frames to grayscale 
-
+n = 0
 while True:
 
     # extracting the frames 
@@ -80,7 +81,6 @@ while True:
     value = 60  # whatever value you want to add
     hsv[:, :, 2] = cv2.add(hsv[:, :, 2], value)
     gray = hsv[:, :, 2]
-
     # write to gray-scale 
     result.write(gray)
 
@@ -91,10 +91,10 @@ while True:
     key = cv2.waitKey(1)
     if key == ord("q"):
         break
-
+    n += 1
 # closing the window 
 cv2.destroyAllWindows()
 source.release()
 
-get_images(video_path="data/10_1-Vid2.mp4", output_folder="data/frames", frame_interval=5)
+# get_images(video_path="data/10_1-Vid2.mp4", output_folder="data/frames", frame_interval=5)
 
