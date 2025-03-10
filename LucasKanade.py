@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
     inRange checks whether the given cordinates line in the given image limits
  cordinates, limits are tuples i.e., (X,Y) 
 '''
+
 def inRange( cordinates, limits):
 	x,y = cordinates
 	X_Limit, Y_Limit = limits
@@ -112,10 +113,10 @@ def drawSeperately(old_frame, new_frame, U, V, output_file):
 
 
 #   Read Input (two images)
-img1 = cv2.imread("./Inputs/grove1.png")
+img1 = cv2.imread("data/frames/frame_0000.jpg")
 img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 
-img2 = cv2.imread("./Inputs/grove2.png")
+img2 = cv2.imread("data/frames/frame_0001.jpg")
 img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
 # Obtain (u,v) from Lucas Kanade's optical flow approach
@@ -123,5 +124,5 @@ U, V = optical_flow( img1, img2, 3, 0.05)
 
 # Save results
 img2 = cv2.cvtColor( img2, cv2.COLOR_GRAY2RGB)
-drawSeperately(img1, img2, U, V, "./Results/Grove_Seperate_Result.png")
-drawOnFrame(img2, U, V, './Results/Grove_Result.png')
+drawSeperately(img1, img2, U, V, "videoFrameOutSeparate.png")
+drawOnFrame(img2, U, V, 'VideoFrameOut.png')

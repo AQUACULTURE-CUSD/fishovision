@@ -31,8 +31,7 @@ def get_images(video_path, output_folder, frame_interval=5):
         print("Error: Cannot open video file.")
         return
     
-    frame_count = 0
-    saved_count = 0
+
     
     while True:
         ret, frame = cap.read()
@@ -68,8 +67,11 @@ result = cv2.VideoWriter('data/output/'+video_name+".mp4",
                          cv2.VideoWriter_fourcc(*'MP4V'),
                          30, size, 0)
 
-# running the loop to convert frames to grayscale 
-n = 0
+# running the loop to convert frames to grayscale
+
+frame_count = 0
+saved_count = 0
+frame_interval = 5
 while True:
 
     # extracting the frames 
@@ -81,6 +83,10 @@ while True:
     value = 60  # whatever value you want to add
     hsv[:, :, 2] = cv2.add(hsv[:, :, 2], value)
     gray = hsv[:, :, 2]
+    if frame_count % frame_interval == 0:
+        image_path = os.path.join('data/frames', f"frame_{saved_count:04d}.jpg")
+        cv2.imwrite(image_path, gray)
+        saved_count += 1
     # write to gray-scale 
     result.write(gray)
 
@@ -91,7 +97,9 @@ while True:
     key = cv2.waitKey(1)
     if key == ord("q"):
         break
-    n += 1
+    frame_count += 1
+
+print(f"Extracted {saved_count} frames and saved to data/frames.")
 # closing the window 
 cv2.destroyAllWindows()
 source.release()

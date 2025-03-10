@@ -1,6 +1,6 @@
 venv
 .idea
 data/output
-data/frames
 videoframe0.png
 videoframe1.png
+data/frames
