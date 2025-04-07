@@ -3,6 +3,33 @@ import cv2
 import numpy as np
 import os
 
+def crop_circle(frame):
+    """ Applies circular mask to frame """
+
+    hh, ww = frame.shape[:2]
+
+    # Center points
+    xc = ww // 2
+    yc = hh // 2
+    
+    radius= yc
+    
+    # Create a mask with a filled white circle
+    mask = np.zeros((hh, ww), dtype=np.uint8)
+    cv2.circle(mask, (xc, yc), radius, 255, thickness=-1)
+
+    # Assuming 3 channels for test case ***
+    MASK = cv2.merge([mask, mask, mask])
+
+    # Apply mask
+    masked_frame = cv2.bitwise_and(frame, MASK)
+
+    # Crop to the square area of the circle
+    cropped_frame = masked_frame[yc - radius:yc + radius, xc - radius:xc + radius]
+
+    return cropped_frame
+
+
 
 def assess_paths(video, folder):
     """
@@ -16,10 +43,12 @@ def assess_paths(video, folder):
         video = os.path.join(os.getcwd(), "10_1-Vid2.mp4")
     if folder is None:
         folder = os.path.join(os.getcwd(), "frames")
+    if folder1 is None:
+        folder1 = os.path.join(os.getcwd(), "cropped_frames")
 
     # Create output directory if it doesn't exist
     os.makedirs(folder, exist_ok=True)
-    return video, folder
+    return video, folder, folder1
 
 
 def video_io(video, output):
@@ -98,4 +127,28 @@ def get_image_set(video_path, output_folder, frame_interval, brightness_adjust=0
 
 
 # get_image_set(video_path="data/10_1-Vid2.mp4", output_folder="data/frames", frame_interval=5, brightness_adjust=60)
+
+# Define input and output folders
+input_folder = os.path.join(os.getcwd(), 'data/frames')
+output_folder = os.path.join(os.getcwd(), 'data/cropped_frames')
+os.makedirs(output_folder, exist_ok=True)
+
+# Establish frames folder
+frame_folder= [f for f in os.listdir(input_folder) if f.endswith('.jpg')]
+saved_count = 0
+
+for file_name in sorted(frame_folder):
+    # Establish image path 
+    saved_count+= 1
+    image_path = os.path.join(input_folder, file_name)
+
+    # Read the image
+    frame = cv2.imread(image_path)
+    
+    # Implement function
+    cropped = crop_circle(frame)
+
+    # Save image to new folder
+    output_path = os.path.join(output_folder, f"cropped_frame_{saved_count:04d}.jpg")
+    cv2.imwrite(output_path, cropped)
 
