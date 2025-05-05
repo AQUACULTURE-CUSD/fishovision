@@ -1,0 +1,26 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Fish-O-Vision
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: August
+    family-names: Ehrlich
+    email: ae427@cornell.edu
+    affiliation: Cornell University Sustainable Design
+  - given-names: Liesel
+    family-names: Wong
+    email: lyw8@cornell.edu
+    affiliation: Cornell University Sustainable Design
+  - given-names: Rachel
+    family-names: Pyeon
+    email: rp653@cornell.edu
+    affiliation: Cornell University Sustainable Design
+  - given-names: Angela
+    family-names: Xiao
+    email: ax38@cornell.edu
+    affiliation: Cornell University Sustainable Design
