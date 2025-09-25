@@ -79,9 +79,33 @@ def drawOnFrame(frame, U, V, output_file):
 
             if u and v:
                 frame = cv2.arrowedLine(frame, (i, j), (int(round(i+u)), int(round(j+v))),
-                                        (0, 255, 0),
+                                        line_color,
                                         thickness=1)
     cv2.imwrite(output_file, frame)
+
+
+'''
+Draw the displacement vectors on the image, given (u,v) and save it to the output filepath provided
+'''
+
+
+def displacements(old_frame, new_frame):
+    old_frame = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
+    new_frame = cv2.cvtColor(new_frame, cv2.COLOR_BGR2GRAY)
+    U, V = optical_flow(old_frame, new_frame, 3, 0.05)
+    displacement = np.ones_like(new_frame)
+    displacement.fill(255.)  # Fill the displacement plot with White background
+    line_color = (0, 0, 0)
+    # draw the displacement vectors
+    for i in range(new_frame.shape[0]):
+        for j in range(new_frame.shape[1]):
+
+            start_pixel = (i, j)
+            end_pixel = (int(i + U[i][j]), int(j + V[i][j]))
+            # check if there is displacement for the corner and endpoint is in range
+            if U[i][j] and V[i][j] and inRange(end_pixel, old_frame.shape):
+                displacement = cv2.arrowedLine(displacement, start_pixel, end_pixel, line_color, thickness=2)
+    return displacement
 
 
 '''
@@ -92,18 +116,7 @@ Save the plot to given output filepath
 
 def drawSeparately(old_frame, new_frame, U, V, output_file):
 
-    displacement = np.ones_like(new_frame)
-    displacement.fill(255.)             # Fill the displacement plot with White background
-    line_color = (0, 0, 0)
-    # draw the displacement vectors
-    for i in range(new_frame.shape[0]):
-        for j in range(new_frame.shape[1]):
-
-            start_pixel = (i, j)
-            end_pixel = (int(i+U[i][j]), int(j+V[i][j]))
-            # check if there is displacement for the corner and endpoint is in range
-            if U[i][j] and V[i][j] and inRange(end_pixel, old_frame.shape):
-                displacement = cv2.arrowedLine(displacement, start_pixel, end_pixel, line_color, thickness=2)
+    displacement = displacements(old_frame, new_frame)
 
     figure, axes = plt.subplots(1,3)
     axes[0].imshow(old_frame, cmap="gray")
@@ -116,24 +129,35 @@ def drawSeparately(old_frame, new_frame, U, V, output_file):
     plt.savefig(output_file, bbox_inches="tight", dpi=200)
 
 
+"""
 # Read Input (two images)
-'''
-img1 = cv2.imread("data/frames/frame_0000.jpg")
+
+img1 = cv2.imread("cropped_frames/cropped_frame_1.jpg")
 img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 
-img2 = cv2.imread("data/frames/frame_0001.jpg")
+img2 = cv2.imread("cropped_frames/cropped_frame_2.jpg")
 img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-'''
 
 # Obtain (u,v) from Lucas Kanade's optical flow approach
-''' 
-Use this format to get the optical flow results in the other file:
-U, V = optical_flow(img1, img2, 3, 0.05) 
-'''
+U, V = optical_flow(img1, img2, 3, 0.05)
 
 # Save results
-'''
 img2 = cv2.cvtColor(img2, cv2.COLOR_GRAY2RGB)
 drawSeparately(img1, img2, U, V, "videoFrameOutSeparate.png")
 drawOnFrame(img2, U, V, 'VideoFrameOut.png')
-'''
+"""
+
+
+def drawOnFrameWrapper(old_frame, new_frame):
+    old_frame = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
+    new_frame = cv2.cvtColor(new_frame, cv2.COLOR_BGR2GRAY)
+    U, V = optical_flow(old_frame, new_frame, 3, 0.05)
+    line_color = (0, 255, 0)  # Green
+    for i in range(old_frame.shape[0]):
+        for j in range(old_frame.shape[1]):
+            u, v = U[i][j], V[i][j]
+            if u and v:
+                old_frame = cv2.arrowedLine(old_frame, (i, j), (int(round(i + u)), int(round(j + v))),
+                                        (0, 255, 0),
+                                        thickness=1)
+    return old_frame

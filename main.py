@@ -1,37 +1,13 @@
-# importing the module 
+# importing the module
+from __future__ import annotations
+import time
+import pipeline
 import cv2
-import numpy as np
 import os
+import circle_tc
+import LucasKanade
 
-def crop_circle(frame):
-    """ Applies circular mask to frame """
-
-    hh, ww = frame.shape[:2]
-
-    # Center points
-    xc = ww // 2
-    yc = hh // 2
-    
-    radius= yc
-    
-    # Create a mask with a filled white circle
-    mask = np.zeros((hh, ww), dtype=np.uint8)
-    cv2.circle(mask, (xc, yc), radius, 255, thickness=-1)
-
-    # Assuming 3 channels for test case ***
-    MASK = cv2.merge([mask, mask, mask])
-
-    # Apply mask
-    masked_frame = cv2.bitwise_and(frame, MASK)
-
-    # Crop to the square area of the circle
-    cropped_frame = masked_frame[yc - radius:yc + radius, xc - radius:xc + radius]
-
-    return cropped_frame
-
-
-
-def assess_paths(video, folder):
+def assess_paths(video, folder, folder1):
     """
     Checks whether the video and output folder paths are good, and adjusts them if not.
     :param video: String, The given video input file name.
@@ -128,27 +104,130 @@ def get_image_set(video_path, output_folder, frame_interval, brightness_adjust=0
 
 # get_image_set(video_path="data/10_1-Vid2.mp4", output_folder="data/frames", frame_interval=5, brightness_adjust=60)
 
-# Define input and output folders
-input_folder = os.path.join(os.getcwd(), 'data/frames')
-output_folder = os.path.join(os.getcwd(), 'data/cropped_frames')
-os.makedirs(output_folder, exist_ok=True)
+def cropped_circles_test():
+    # Define input and output folders
+    input_folder = os.path.join(os.getcwd(), 'data/frames')
+    output_folder = os.path.join(os.getcwd(), 'data/cropped_frames')
+    os.makedirs(output_folder, exist_ok=True)
 
-# Establish frames folder
-frame_folder= [f for f in os.listdir(input_folder) if f.endswith('.jpg')]
-saved_count = 0
+    # Establish frames folder
+    frame_folder = [f for f in os.listdir(input_folder) if f.endswith('.jpg')]
+    saved_count = 0
+    start_t = time.time()
+    for file_name in frame_folder:
+        # Establish image path
+        saved_count += 1
+        image_path = os.path.join(input_folder, file_name)
 
-for file_name in sorted(frame_folder):
-    # Establish image path 
-    saved_count+= 1
-    image_path = os.path.join(input_folder, file_name)
+        # Read the image
+        frame = cv2.imread(image_path)
 
-    # Read the image
-    frame = cv2.imread(image_path)
-    
-    # Implement function
-    cropped = crop_circle(frame)
+        # Implement function
+        cropped = circle_tc.crop_center_circle(frame)
 
-    # Save image to new folder
-    output_path = os.path.join(output_folder, f"cropped_frame_{saved_count:04d}.jpg")
-    cv2.imwrite(output_path, cropped)
+        # Save image to new folder
+        output_path = os.path.join(output_folder, f"cropped_frame_{saved_count:04d}.jpg")
+        cv2.imwrite(output_path, cropped)
 
+    length = time.time() - start_t
+    print(length, "seconds to crop all frames.")
+    print(length / saved_count, "seconds per frame.")
+
+
+def lucas_kanade_test():
+    frame_folder = [f for f in os.listdir('data/cropped_frames') if f.endswith('.jpg')]
+    output_folder = os.path.join(os.getcwd(), 'data/lucas_kanade_frames')
+    os.makedirs(output_folder, exist_ok=True)
+    saved_count = 0
+    start_t = time.time()
+    for file_index in range(len(frame_folder) - 1):
+        image_path1 = os.path.join('data/cropped_frames', frame_folder[file_index])
+        image_path2 = os.path.join('data/cropped_frames', frame_folder[file_index + 1])
+        # Read the image
+        frame1 = cv2.imread(image_path1)
+        frame2 = cv2.imread(image_path2)
+
+        # displacements = LucasKanade.displacements(frame1, frame2)
+        displacements = LucasKanade.drawOnFrameWrapper(frame1, frame2)
+
+        # Save image to new folder
+        output_path = os.path.join(output_folder, f"displacement_frame{saved_count:04d}.jpg")
+        cv2.imwrite(output_path, displacements)
+        saved_count += 1
+
+    length = time.time() - start_t
+    print(length, "seconds to displace all frames.")
+    print(length / saved_count, "seconds per displacement frame.")
+
+
+def images_to_video():
+    image_folder = 'data/lucas_kanade_frames'
+    video_name = 'video.avi'
+
+    images = [img for img in os.listdir(image_folder) if img.endswith(".jpg")]
+    frame = cv2.imread(os.path.join(image_folder, images[0]))
+    height, width, layers = frame.shape
+
+    video = cv2.VideoWriter(video_name, 0, 1, (width,height))
+
+    for image in images:
+        video.write(cv2.imread(os.path.join(image_folder, image)))
+
+    cv2.destroyAllWindows()
+    video.release()
+
+
+def run_main():
+    pipeline_steps = [
+        pipeline.GrayscaleConverter(),
+        pipeline.BrightnessAdjuster(10),
+        # Commented out until I can ensure they aren't going to crash or do anything goofy
+        #pipeline.OpticalFlowCalculator(0.3),
+        #pipeline.Visualize()
+        pipeline.ShowCurrentImage()
+
+    ]
+    cv_pipeline = pipeline.Pipeline(pipeline_steps)
+
+    cap = cv2.VideoCapture('your_video.mp4')  # Or 0 for webcam
+    if not cap.isOpened():
+        print("Error: Could not open video.")
+        return
+
+    frame_num = 0
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        if (frame_num % 5) != 0:
+            continue
+
+        # 4. Prepare the context for this frame
+        process_context = {
+            'original_frame': frame.copy(),
+            'current_frame': frame.copy(),
+            'frame_number': frame_num
+        }
+
+        # 5. Run the pipeline
+        _ = cv_pipeline.run(process_context)
+
+        # # 6. Display the result
+        # processed_frame = result_context.get('current_frame')
+        # cv2.imshow('CV Pipeline Output', processed_frame)
+        #
+        # if cv2.waitKey(10) & 0xFF == ord('q'):
+        #     break
+
+        frame_num += 1
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+
+    run_main()
+    images_to_video()
+    # lucas_kanade_test()

@@ -33,8 +33,9 @@ def kmeans_partition(image, k):
     return segmented_image
 
 # load image from images directory
-img = cv2.imread('data/frames/frame_ 000.jpg')
-simg = kmeans_partition(img, 10)
+img = cv2.imread('cropped_frames/cropped_frame_1.jpg')
+simg = kmeans_partition(img, 5)
 cv2.namedWindow("Image")
-cv2.imshow('Image',img)
+cv2.imwrite("kmeans.jpg", simg)
+cv2.imshow('Image',simg)
 cv2.waitKey(0)

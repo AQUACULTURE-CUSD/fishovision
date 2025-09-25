@@ -2,8 +2,9 @@ import cv2 as cv2
 import numpy as np
 import os
 
+
 def crop_center_circle(frame):
-    """ Applies cicular mask to frame """
+    """ Applies circular mask to frame """
 
     hh, ww = frame.shape[:2]
 
@@ -29,18 +30,17 @@ def crop_center_circle(frame):
     return cropped_frame
 
 
-# Load your image
-image_path = '/Users/rachelpyeon/Desktop/fish.jpg'
-frame = cv2.imread(image_path)
+def run_test(image_path, n):
+    # Load your image
+    frame = cv2.imread(image_path)
 
-cropped = crop_center_circle(frame)
+    cropped = crop_center_circle(frame)
 
-# Create folder
-output_folder = "cropped_frames"
-os.makedirs(output_folder, exist_ok=True)
+    # Create folder
+    output_folder = "cropped_frames"
+    os.makedirs(output_folder, exist_ok=True)
 
-filename = "cropped_frame_07.jpg"
-cv2.imwrite(os.path.join(output_folder, filename), cropped)
+    filename = f"cropped_frame_{n}.jpg"
+    cv2.imwrite(os.path.join(output_folder, filename), cropped)
 
-print(f"Saved cropped image to {os.path.join(output_folder, filename)}")
-
+    print(f"Saved cropped image to {os.path.join(output_folder, filename)}")
