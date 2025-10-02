@@ -1,11 +1,14 @@
 # importing the module
 from __future__ import annotations
 import time
-import pipeline
+from processing_steps import *
+
 import cv2
 import os
 import circle_tc
 import LucasKanade
+from processing_steps import grayscale
+
 
 def assess_paths(video, folder, folder1):
     """
@@ -179,17 +182,15 @@ def images_to_video():
 
 def run_main():
     pipeline_steps = [
-        pipeline.GrayscaleConverter(),
-        pipeline.BrightnessAdjuster(10),
+        GrayscaleConverter(),
+        # pipeline.BrightnessAdjuster(10),
         # Commented out until I can ensure they aren't going to crash or do anything goofy
-        #pipeline.OpticalFlowCalculator(0.3),
-        #pipeline.Visualize()
-        pipeline.ShowCurrentImage()
-
+        OpticalFlowCalculator(0.3),
+        Visualize()
     ]
-    cv_pipeline = pipeline.Pipeline(pipeline_steps)
+    cv_pipeline = Pipeline(pipeline_steps)
 
-    cap = cv2.VideoCapture('your_video.mp4')  # Or 0 for webcam
+    cap = cv2.VideoCapture('data/short_video.mp4')  # Or 0 for webcam
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
@@ -201,8 +202,8 @@ def run_main():
             break
 
         if (frame_num % 5) != 0:
+            frame_num += 1
             continue
-
         # 4. Prepare the context for this frame
         process_context = {
             'original_frame': frame.copy(),
@@ -213,21 +214,39 @@ def run_main():
         # 5. Run the pipeline
         _ = cv_pipeline.run(process_context)
 
-        # # 6. Display the result
-        # processed_frame = result_context.get('current_frame')
-        # cv2.imshow('CV Pipeline Output', processed_frame)
-        #
-        # if cv2.waitKey(10) & 0xFF == ord('q'):
-        #     break
-
         frame_num += 1
 
     cap.release()
     cv2.destroyAllWindows()
 
 
+def test_one_image():
+    print("In Test IMage")
+    pipeline_steps = [
+        GrayscaleConverter(),
+        BrightnessAdjuster(10),
+        OpticalFlowCalculator(0.3),
+        Visualize()
+        # pipeline.ShowCurrentImage()
+    ]
+    frames = [cv2.imread('data/frames/frame_ 000.jpg'), cv2.imread('data/frames/frame_ 005.jpg')]
+    cv_pipeline = Pipeline(pipeline_steps)
+    for frame in frames:
+        # 4. Prepare the context for this frame
+        process_context = {
+            'original_frame': frame.copy(),
+            'current_frame': frame.copy(),
+            'frame_number': 0
+        }
+
+        # 5. Run the pipeline
+        _ = cv_pipeline.run(process_context)
+
+
 if __name__ == "__main__":
 
     run_main()
-    images_to_video()
+
+    # test_one_image()
+    # images_to_video()
     # lucas_kanade_test()
