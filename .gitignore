@@ -4,10 +4,8 @@ data/output
 videoframe0.png
 videoframe1.png
 data/frames
-data/11_18-Vid11.mov
-data/short_video.mp4
-data/cropped_frames
-kmeans.jpg
-/data/lucas_kanade_frames/
+*.mov
+*.mp4
+*.jpg
 video.avi
 __pycache__/

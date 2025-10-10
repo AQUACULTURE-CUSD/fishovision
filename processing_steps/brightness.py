@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from processing_steps.pipeline import ProcessingStep
+from .pipeline import ProcessingStep
 
 
 class BrightnessAdjuster(ProcessingStep):
