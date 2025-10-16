@@ -34,10 +34,20 @@ class OpticalFlowCalculator(ProcessingStep):
         if current_gray is None:
             return context
 
-        # If we don't have points yet, or too few points, detect new ones
-        if self.feature_points is None or len(self.feature_points) < self.feature_threshold:
-            # Use the current frame to detect features
-            self.feature_points = cv2.goodFeaturesToTrack(
+        print("Processing Optical Flow")
+
+        # ADDED 10/16 Ensure grayscale and 8-bit format 
+        if len(current_gray.shape) == 3:
+            current_gray = cv2.cvtColor(current_gray, cv2.COLOR_BGR2GRAY)
+
+        if current_gray.dtype != np.uint8:
+            current_gray = current_gray.astype(np.uint8)
+
+
+
+        if self.prev_gray is None:
+            # Find initial features in the first frame
+            self.prev_features = cv2.goodFeaturesToTrack(
                 current_gray,
                 maxCorners=500,
                 qualityLevel=self.min_feature_quality,
@@ -69,8 +79,16 @@ class OpticalFlowCalculator(ProcessingStep):
 
                 # Add the valid tracks to the context for visualization
                 context['tracks'] = (good_old, good_new)
-
+        
+        self.prev_features = cv2.goodFeaturesToTrack(
+            current_gray,
+            maxCorners=500,
+            qualityLevel=self.min_feature_quality,
+            minDistance=15
+        )
+        
         # Remember the current frame for the next iteration
         self.prev_gray = current_gray
 
         return context
+    

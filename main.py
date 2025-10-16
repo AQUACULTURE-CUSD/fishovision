@@ -19,7 +19,7 @@ def assess_paths(video, folder, folder1):
     """
     # Set default paths based on the current working directory
     if video is None:
-        video = os.path.join(os.getcwd(), "10_1-Vid2.mp4")
+        video = os.path.join(os.getcwd(), "data/feeding_bubbling.mp4") # RACHEL: change to new vid
     if folder is None:
         folder = os.path.join(os.getcwd(), "frames")
     if folder1 is None:
@@ -29,6 +29,9 @@ def assess_paths(video, folder, folder1):
     os.makedirs(folder, exist_ok=True)
     return video, folder, folder1
 
+video= "data/feeding_bubbling.mp4"
+output= "data/frames"
+cropped= "data/cropped_frames"
 
 def video_io(video, output):
     """
@@ -37,7 +40,7 @@ def video_io(video, output):
     :param output: the path to the output folder
     :return: the CV2 videoCapture object for the source video and the CV2 VideoWriter object for the dest video
     """
-    video_path, output_folder = assess_paths(video, output)
+    video_path, output_folder, cropped_folder = assess_paths(video, output, cropped)
     s = cv2.VideoCapture(video_path)
     # We need to set resolutions.
     # so, convert them from float to integer.
@@ -54,6 +57,9 @@ def video_io(video, output):
 # split up a video into a collection of images 
 # video_path = "/Users/lieselwong/Documents/fishovision/data/10_1-Vid2.mp4"
 # output_path = "/Users/lieselwong/Documents/fishovision/data/output"
+
+video_path = "/Users/rachelpyeon/Documents/fishovision/data/data/10_1-Vid2.mp4"
+output_path = "/Users/rachelpyeon/Documents/fishovision/data/output"
 def get_image_set(video_path, output_folder, frame_interval, brightness_adjust=0, show_video=False):
     """
     Extracts frames from a video and saves them as images.
@@ -105,7 +111,7 @@ def get_image_set(video_path, output_folder, frame_interval, brightness_adjust=0
     source.release()
 
 
-# get_image_set(video_path="data/10_1-Vid2.mp4", output_folder="data/frames", frame_interval=5, brightness_adjust=60)
+#get_image_set(video_path="data/feeding_bubbling.mp4", output_folder="data/frames", frame_interval=5, brightness_adjust=60)
 
 def cropped_circles_test():
     # Define input and output folders
@@ -126,7 +132,7 @@ def cropped_circles_test():
         frame = cv2.imread(image_path)
 
         # Implement function
-        cropped = circle_tc.crop_center_circle(frame)
+        cropped = circle_tc.crop_center_circle(frame, offset=-50)
 
         # Save image to new folder
         output_path = os.path.join(output_folder, f"cropped_frame_{saved_count:04d}.jpg")
@@ -179,6 +185,8 @@ def images_to_video():
     cv2.destroyAllWindows()
     video.release()
 
+#lucas_kanade_test()
+#images_to_video()
 
 def run_main():
     pipeline_steps = [
@@ -190,7 +198,7 @@ def run_main():
     ]
     cv_pipeline = Pipeline(pipeline_steps)
 
-    cap = cv2.VideoCapture('data/short_video.mp4')  # Or 0 for webcam
+    cap = cv2.VideoCapture('data/video.avi')  # Or 0 for webcam
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
@@ -243,10 +251,51 @@ def test_one_image():
         _ = cv_pipeline.run(process_context)
 
 
+#get_image_set(video_path="data/10_1-Vid2.mp4", output_folder="data/frames", frame_interval=5, brightness_adjust=60)
+#cropped_circles_test()
+#lucas_kanade_test()
+"""
 if __name__ == "__main__":
+    pipeline_steps = [
+        MedianFilter(),
+        CircleCrop(center=(-50, -30), r=470),
+        #test_one_image(pipeline_steps),
+        images_to_video(),
+        lucas_kanade_test(),
 
-    run_main()
+        OpticalFlowCalculator(0.2)
+    ]
+    #run_main(pipeline_steps)
+    test_one_image(pipeline_steps)
 
-    # test_one_image()
+"""
+
+if __name__ == "__main__":
+    pipeline_steps = [
+        #BilateralFilter(),
+        #GaussianBlur((5,5), 1.2),
+        #MedianFilter(5),
+        CircleCrop(center=(-50, -30), r=470),
+        LabColorSegmentationMask(),
+        ApplyMaskDenoised((7,7)),
+        GrayscaleConverter(),
+        LinearContrastAdjuster(1.4),
+        # MidToneThresholdMask(20, 190),
+        # ApplyMaskDenoised((7, 7)),
+        #CropLine(-0.5, 1250, reverse=True),
+
+        # MidToneThresholdDenoised(10, 200, 7),
+        # BrightnessAdjuster(30),
+        ShowCurrentImage(),
+        #SaveCurrentImage(),
+
+
+        OpticalFlowCalculator(0.2),
+        # Visualize(),
+        GraphData("output.txt")
+    ]
+    #run_main(pipeline_steps)
+
+    test_one_image(pipeline_steps)
     # images_to_video()
     # lucas_kanade_test()
