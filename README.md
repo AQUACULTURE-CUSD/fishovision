@@ -1,1 +1,1 @@
-CUSD Aquaculture
+CUSD Aquaculture. Algorithm to use computer vision to identify signs of fish hunger in aquaculture operations and automate feeding in order to reduce feed waste.
