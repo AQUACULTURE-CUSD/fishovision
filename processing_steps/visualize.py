@@ -1,4 +1,4 @@
-from pipeline import ProcessingStep
+from .pipeline import ProcessingStep
 import numpy as np
 import cv2
 

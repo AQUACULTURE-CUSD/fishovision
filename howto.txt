@@ -2,6 +2,8 @@ Items in {} are allowed to be anything, everything else should be as written
 
 1. Create a new file in the processing_steps folder, named {something} (preferably related to your processing step).
     a. In the file, create a class as such
+        {import any packages you need, possibly numpy, cv2, or other}
+
         class {ClassName}(ProcessingStep):
             """
             {Write a description of your class and what it does here, making sure to note any
@@ -15,7 +17,7 @@ Items in {} are allowed to be anything, everything else should be as written
                 {put your code here, using/modifying the context information}
                 return context
 
-2. Make sure to add these lines to the __init__.py file:
+2. Make sure to add these lines to the __init__.py file in processing_steps:
     a. At the beginning (with the other imports):
         from .{name of your file} import {name of your class}
     b. Add this item to the __all__ list:

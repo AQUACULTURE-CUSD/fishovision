@@ -1,14 +1,11 @@
 # importing the module
 from __future__ import annotations
 import time
-from processing_steps import *
-
+import pipeline
 import cv2
 import os
 import circle_tc
 import LucasKanade
-from processing_steps import grayscale
-
 
 def assess_paths(video, folder, folder1):
     """
@@ -52,9 +49,11 @@ def video_io(video, output):
 
 
 # split up a video into a collection of images 
-# video_path = "/Users/lieselwong/Documents/fishovision/data/10_1-Vid2.mp4"
-# output_path = "/Users/lieselwong/Documents/fishovision/data/output"
-def get_image_set(video_path, output_folder, frame_interval, brightness_adjust=0, show_video=False):
+video_path = "/Users/rachelpyeon/Desktop/fishovision/data/10_1-Vid2.mp4"
+output_path = "/Users/rachelpyeon/Desktop/fishovision/data/output"
+
+# TEST CASE EVERY 20TH
+def get_image_set(video_path, output_folder, frame_interval=20, brightness_adjust=0, show_video=False):
     """
     Extracts frames from a video and saves them as images.
 
@@ -80,9 +79,9 @@ def get_image_set(video_path, output_folder, frame_interval, brightness_adjust=0
         hsv[:, :, 2] = cv2.add(hsv[:, :, 2], brightness_adjust)
         gray = hsv[:, :, 2]
 
-        # Save every 5th frame
+        # Saves every -- frame
         if frame_count % frame_interval == 0:
-            image_path = os.path.join('data/frames', f"frame_{saved_count: 04d}.jpg")
+            image_path = os.path.join('/Users/rachelpyeon/Desktop/fishovision/data/frames', f"frame_{saved_count:04d}.jpg")
             cv2.imwrite(image_path, gray)
             saved_count += 1
 
@@ -105,18 +104,29 @@ def get_image_set(video_path, output_folder, frame_interval, brightness_adjust=0
     source.release()
 
 
-# get_image_set(video_path="data/10_1-Vid2.mp4", output_folder="data/frames", frame_interval=5, brightness_adjust=60)
+#get_image_set(video_path="data/10_1-Vid2.mp4", output_folder="data/frames", frame_interval=5, brightness_adjust=60)
+
+# BLURS 
+def gaussian_blur(frame, ksize=(15, 15), sigmaX=0):
+    return cv2.GaussianBlur(frame, ksize, sigmaX)
+
+def median_blur(frame, ksize=3):
+    return cv2.medianBlur(frame, ksize)
+
+def bilateral_blur(frame, d=7, sigmaColor=50, sigmaSpace=50):
+    return cv2.bilateralFilter(frame, d, sigmaColor, sigmaSpace)
+
 
 def cropped_circles_test():
     # Define input and output folders
-    input_folder = os.path.join(os.getcwd(), 'data/frames')
-    output_folder = os.path.join(os.getcwd(), 'data/cropped_frames')
+    input_folder = os.path.join(os.getcwd(), '/Users/rachelpyeon/Desktop/fishovision/data/frames')
+    output_folder = os.path.join(os.getcwd(), '/Users/rachelpyeon/Desktop/fishovision/data/cropped_frames')
     os.makedirs(output_folder, exist_ok=True)
 
     # Establish frames folder
     frame_folder = [f for f in os.listdir(input_folder) if f.endswith('.jpg')]
     saved_count = 0
-    start_t = time.time()
+    #start_t = time.time()
     for file_name in frame_folder:
         # Establish image path
         saved_count += 1
@@ -132,24 +142,39 @@ def cropped_circles_test():
         output_path = os.path.join(output_folder, f"cropped_frame_{saved_count:04d}.jpg")
         cv2.imwrite(output_path, cropped)
 
-    length = time.time() - start_t
-    print(length, "seconds to crop all frames.")
-    print(length / saved_count, "seconds per frame.")
+    #length = time.time() - start_t
+    #print(length, "seconds to crop all frames.")
+    #print(length / saved_count, "seconds per frame.")
 
 
-def lucas_kanade_test():
-    frame_folder = [f for f in os.listdir('data/cropped_frames') if f.endswith('.jpg')]
-    output_folder = os.path.join(os.getcwd(), 'data/lucas_kanade_frames')
+def lucas_kanade_test(blur=True):
+    #frame_folder = [f for f in os.listdir('data/cropped_frames') if f.endswith('.jpg')]
+    frame_folder = [f for f in os.listdir('/Users/rachelpyeon/Desktop/fishovision/data/cropped_frames') if f.endswith('.jpg')]
+    #output_folder = os.path.join(os.getcwd(), 'data/lucas_kanade_frames')
+
+    # CHANGE based on blur type ***
+    #newfolder = os.path.join(os.getcwd(), "bilateral_displ")
+    #output_folder = os.path.join(os.getcwd(), '/Users/rachelpyeon/Desktop/fishovision/data/bilateral_displ')
+
+    newfolder = os.path.join(os.getcwd(), "median_displ")
+    output_folder = os.path.join(os.getcwd(), '/Users/rachelpyeon/Desktop/fishovision/data/median_displ')
+
     os.makedirs(output_folder, exist_ok=True)
     saved_count = 0
-    start_t = time.time()
-    for file_index in range(len(frame_folder) - 1):
-        image_path1 = os.path.join('data/cropped_frames', frame_folder[file_index])
-        image_path2 = os.path.join('data/cropped_frames', frame_folder[file_index + 1])
+    #start_t = time.time()
+    for file_index in range(0, len(frame_folder) - 20, 20):
+        image_path1 = os.path.join('/Users/rachelpyeon/Desktop/fishovision/data/cropped_frames', frame_folder[file_index])
+        image_path2 = os.path.join('/Users/rachelpyeon/Desktop/fishovision/data/cropped_frames', frame_folder[file_index + 20])
+        
         # Read the image
         frame1 = cv2.imread(image_path1)
         frame2 = cv2.imread(image_path2)
 
+        # CHANGE based on blur ***
+        if blur:
+            frame1 = median_blur(frame1, ksize=3)
+            frame2 = median_blur(frame2, ksize=3)
+        
         # displacements = LucasKanade.displacements(frame1, frame2)
         displacements = LucasKanade.drawOnFrameWrapper(frame1, frame2)
 
@@ -158,13 +183,14 @@ def lucas_kanade_test():
         cv2.imwrite(output_path, displacements)
         saved_count += 1
 
-    length = time.time() - start_t
-    print(length, "seconds to displace all frames.")
-    print(length / saved_count, "seconds per displacement frame.")
+    #length = time.time() - start_t
+    #print(length, "seconds to displace all frames.")
+    #print(length / saved_count, "seconds per displacement frame.")
 
 
 def images_to_video():
-    image_folder = 'data/lucas_kanade_frames'
+    #image_folder = 'data/lucas_kanade_frames'
+    image_folder = '/Users/rachelpyeon/Desktop/fishovision/data/frames'
     video_name = 'video.avi'
 
     images = [img for img in os.listdir(image_folder) if img.endswith(".jpg")]
@@ -180,10 +206,21 @@ def images_to_video():
     video.release()
 
 
-def run_main(pipeline_steps):
-    cv_pipeline = Pipeline(pipeline_steps)
+def run_main():
+    pipeline_steps = [
+        pipeline.GrayscaleConverter(),
+        pipeline.BrightnessAdjuster(10),
+        # Commented out until I can ensure they aren't going to crash or do anything goofy
+        #pipeline.OpticalFlowCalculator(0.3),
+        #pipeline.Visualize()
+        pipeline.ShowCurrentImage()
 
-    cap = cv2.VideoCapture('data/No-Bubbling-Video.mp4')  # Or 0 for webcam
+    ]
+    cv_pipeline = pipeline.Pipeline(pipeline_steps)
+
+    #cap = cv2.VideoCapture('your_video.mp4')  # Or 0 for webcam
+    cap = cv2.VideoCapture(video_path)  # Or 0 for webcam
+
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
@@ -194,9 +231,9 @@ def run_main(pipeline_steps):
         if not ret:
             break
 
-        if (frame_num % 10) != 0:
-            frame_num += 1
+        if (frame_num % 5) != 0:
             continue
+
         # 4. Prepare the context for this frame
         process_context = {
             'original_frame': frame.copy(),
@@ -207,50 +244,22 @@ def run_main(pipeline_steps):
         # 5. Run the pipeline
         _ = cv_pipeline.run(process_context)
 
+        # # 6. Display the result
+        # processed_frame = result_context.get('current_frame')
+        # cv2.imshow('CV Pipeline Output', processed_frame)
+        #
+        # if cv2.waitKey(10) & 0xFF == ord('q'):
+        #     break
+
         frame_num += 1
 
     cap.release()
     cv2.destroyAllWindows()
 
 
-def test_one_image(pipeline_steps):
-    frames = [cv2.imread('data/frames/frame_ 000.jpg'), cv2.imread('data/frames/frame_ 005.jpg')]
-    cv_pipeline = Pipeline(pipeline_steps)
-    for frame in frames:
-        # 4. Prepare the context for this frame
-        process_context = {
-            'original_frame': frame.copy(),
-            'current_frame': frame.copy(),
-            'frame_number': 0
-        }
-
-        # 5. Run the pipeline
-        _ = cv_pipeline.run(process_context)
-
-
 if __name__ == "__main__":
-    pipeline_steps = [
-        # MedianFilter(),
-        CircleCrop(center=(-50, -30), r=470),
-        LabColorSegmentationMask(),
-        ApplyMaskDenoised((7,7)),
-        GrayscaleConverter(),
-        LinearContrastAdjuster(1.4),
-        # MidToneThresholdMask(20, 190),
-        # ApplyMaskDenoised((7, 7)),
-        CropLine(-0.5, 1250, reverse=True),
 
-        # MidToneThresholdDenoised(10, 200, 7),
-        # BrightnessAdjuster(30),
-        # ShowCurrentImage(),
-
-
-        OpticalFlowCalculator(0.2),
-        # Visualize(),
-        GraphData("output.txt")
-    ]
-    run_main(pipeline_steps)
-
-    # test_one_image(pipeline_steps)
-    # images_to_video()
-    # lucas_kanade_test()
+    run_main()
+    images_to_video()
+    #cropped_circles_test()
+    lucas_kanade_test(blur=None)

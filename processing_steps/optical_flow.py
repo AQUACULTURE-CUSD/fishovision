@@ -1,4 +1,5 @@
-from processing_steps.pipeline import ProcessingStep
+from .pipeline import ProcessingStep
+import numpy as np
 import cv2
 
 
@@ -12,13 +13,13 @@ class OpticalFlowCalculator(ProcessingStep):
             features throughout the process, but gets rid of bad ones. If the total number of tracked features falls
             below this value, it will trigger another full feature search).
 
-    Input: Previous image @ self.prev_gray, current image @ context['current_frame']
+    Input: Previous image @ self.prev_gray, current image @ context['current_frame'], previous points @ self.prev_points,
     Output: (Old, New) lists of matching point pairs. (Old[i], New[i]) are matched point pairs.
         Found @ context['tracks']
     """
     def __init__(self, min_feature_quality: float, feature_threshold: int = 100):
         self.prev_gray = None
-        self.feature_points = None  # <-- RENAMED for clarity
+        self.prev_features = None  # <-- RENAMED for clarity
 
         # Hyperparameters
         self.min_feature_quality = min_feature_quality
@@ -34,43 +35,48 @@ class OpticalFlowCalculator(ProcessingStep):
         if current_gray is None:
             return context
 
-        # If we don't have points yet, or too few points, detect new ones
-        if self.feature_points is None or len(self.feature_points) < self.feature_threshold:
-            # Use the current frame to detect features
-            self.feature_points = cv2.goodFeaturesToTrack(
+        print("Processing Optical Flow")
+        if self.prev_gray is None:
+            # Find initial features in the first frame
+            self.prev_features = cv2.goodFeaturesToTrack(
                 current_gray,
                 maxCorners=500,
                 qualityLevel=self.min_feature_quality,
-                minDistance=7
+                minDistance=15
             )
-            # After detecting, we set the current frame as the previous for the *next* iteration
+            # Store the current frame as the 'previous' for the next iteration
             self.prev_gray = current_gray
-            return context  # Skip tracking on the detection frame
+            return context
 
-        # If we have feature points, track them
-        if self.feature_points is not None:
+        # SUBSEQUENT FRAMES: We have a previous frame and points, so we can track.
+        if self.prev_features is not None:
+            # Ensure points are float32, a common requirement for this function
+            p0 = self.prev_features.astype(np.float32)
+
             # Calculate optical flow
             new_points, status, err = cv2.calcOpticalFlowPyrLK(
-                self.prev_gray,
-                current_gray,
-                self.feature_points,
-                None,
-                # This expands the lk_params dictionary as a set of labelled function arguments
+                self.prev_gray,  # Previous frame
+                current_gray,  # Current frame
+                p0,  # Points from the PREVIOUS frame
+                None,  # Let OpenCV find the new points
                 **self.lk_params
             )
 
             # Filter and keep only the successfully tracked points
             if new_points is not None:
                 good_new = new_points[status == 1]
-                good_old = self.feature_points[status == 1]
-
-                # CRITICAL: Update the feature list with the new positions
-                self.feature_points = good_new.reshape(-1, 1, 2)
-
-                # Add the valid tracks to the context for visualization
+                good_old = p0[status == 1]  # <-- CORRECTED: Use the points we tracked FROM
                 context['tracks'] = (good_old, good_new)
+
+        self.prev_features = cv2.goodFeaturesToTrack(
+            current_gray,
+            maxCorners=500,
+            qualityLevel=self.min_feature_quality,
+            minDistance=15
+        )
 
         # Remember the current frame for the next iteration
         self.prev_gray = current_gray
 
         return context
+
