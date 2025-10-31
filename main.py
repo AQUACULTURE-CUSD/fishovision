@@ -187,6 +187,7 @@ def run_main(pipeline_steps):
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
+    print(cap.get(cv2.CAP_PROP_FPS))
 
     frame_num = 0
     while True:
@@ -205,8 +206,9 @@ def run_main(pipeline_steps):
         }
 
         # 5. Run the pipeline
-        _ = cv_pipeline.run(process_context)
-
+        context = cv_pipeline.run(process_context)
+        if frame_num % 100 == 0:
+            cv2.imwrite(f'data/frames/{frame_num}_visual.png', context['visualized'])
         frame_num += 1
 
     cap.release()
@@ -225,7 +227,7 @@ def test_one_image(pipeline_steps):
         }
 
         # 5. Run the pipeline
-        _ = cv_pipeline.run(process_context)
+        context = cv_pipeline.run(process_context)
 
 
 if __name__ == "__main__":
@@ -234,20 +236,17 @@ if __name__ == "__main__":
         CircleCrop(center=(-50, -30), r=470),
         LabColorSegmentationMask(),
         ApplyMaskDenoised((7,7)),
+        ShowCurrentImage(),
         GrayscaleConverter(),
         LinearContrastAdjuster(1.4),
         # MidToneThresholdMask(20, 190),
         # ApplyMaskDenoised((7, 7)),
         CropLine(-0.5, 1250, reverse=True),
-
         # MidToneThresholdDenoised(10, 200, 7),
         # BrightnessAdjuster(30),
-        # ShowCurrentImage(),
-
-
         OpticalFlowCalculator(0.2),
-        # Visualize(),
-        GraphData("output.txt")
+        Visualize(1),
+        GraphData("output.csv")
     ]
     run_main(pipeline_steps)
 

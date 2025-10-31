@@ -4,6 +4,10 @@ import cv2
 
 
 class Visualize(ProcessingStep):
+
+    def __init__(self, freq):
+        self.frequency = freq
+
     """
     Step to visualize the LK optical flow (to get an idea of what we need to adjust).
 
@@ -15,6 +19,8 @@ class Visualize(ProcessingStep):
         Visualized image @ context['visualized']
     """
     def process(self, context: dict) -> dict:
+        if context['frame_number'] % self.frequency != 0:
+            return context
         # --- 1. Get data and prepare the image (same as before) ---
         frame = context.get('original_frame')
         if frame is None:
@@ -47,7 +53,6 @@ class Visualize(ProcessingStep):
         cv2.waitKey(0)
         # After a key is pressed, destroy the window
         cv2.destroyWindow(window_name)
-
         # --- 3. Update the context and return ---
         context['visualized'] = output_image
         return context
