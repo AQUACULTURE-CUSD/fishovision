@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from .pipeline import ProcessingStep
+import csv
 
 
 class GraphData(ProcessingStep):
@@ -22,6 +23,8 @@ class GraphData(ProcessingStep):
             avg_len += cv2.norm(new_point - old_point, normType=cv2.NORM_L2)
             pass
         avg_len /= len(tracks)
-        with open(self.outfile, 'a') as f:
-            f.write(f'{context['frame_number']}: {avg_len}\n')
+        with open(self.outfile, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['frame_number', 'avg_length'])
+            writer.writerow([context.get('frame_number', -1), avg_len])
         return context

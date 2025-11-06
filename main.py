@@ -19,7 +19,7 @@ def assess_paths(video, folder, folder1):
     """
     # Set default paths based on the current working directory
     if video is None:
-        video = os.path.join(os.getcwd(), "10_1-Vid2.mp4")
+        video = os.path.join(os.getcwd(), "11_18-vid11(1).mp4")
     if folder is None:
         folder = os.path.join(os.getcwd(), "frames")
     if folder1 is None:
@@ -182,8 +182,8 @@ def images_to_video():
 
 def run_main(pipeline_steps):
     cv_pipeline = Pipeline(pipeline_steps)
-
-    cap = cv2.VideoCapture('data/No-Bubbling-Video.mp4')  # Or 0 for webcam
+    # CHANGE THIS LINE TO RUN DIFFERENT VIDEO FILE
+    cap = cv2.VideoCapture('fishovision/data/11_18-Vid11(1).mp4')  # Or 0 for webcam
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
@@ -247,7 +247,9 @@ if __name__ == "__main__":
 
         OpticalFlowCalculator(0.2),
         # Visualize(),
-        GraphData("output.txt")
+        # TODO: Change it so it outputs to csv
+        GraphData("output.csv")
+
     ]
     run_main(pipeline_steps)
 
