@@ -183,7 +183,7 @@ def images_to_video():
 def run_main(pipeline_steps):
     cv_pipeline = Pipeline(pipeline_steps)
 
-    cap = cv2.VideoCapture('data/11_18-Vid11(1).mp4')  # Or 0 for webcam
+    cap = cv2.VideoCapture('data/11_18-Vid11.mov')  # Or 0 for webcam
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
@@ -207,8 +207,6 @@ def run_main(pipeline_steps):
 
         # 5. Run the pipeline
         context = cv_pipeline.run(process_context)
-        if frame_num % 100 == 0:
-            cv2.imwrite(f'data/frames/{frame_num}_visual.png', context['visualized'])
         frame_num += 1
 
     cap.release()
@@ -236,7 +234,7 @@ if __name__ == "__main__":
         CircleCrop(center=(-50, -30), r=470),
         LabColorSegmentationMask(),
         ApplyMaskDenoised((7,7)),
-        ShowCurrentImage(),
+        # ShowCurrentImage(),
         GrayscaleConverter(),
         LinearContrastAdjuster(1.4),
         # MidToneThresholdMask(20, 190),
@@ -245,8 +243,8 @@ if __name__ == "__main__":
         # MidToneThresholdDenoised(10, 200, 7),
         # BrightnessAdjuster(30),
         OpticalFlowCalculator(0.2),
-        Visualize(1),
-        GraphData("output.csv")
+        # Visualize(1),
+        GraphData("output.csv", 30, 20)
     ]
     run_main(pipeline_steps)
 
