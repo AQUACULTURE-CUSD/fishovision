@@ -1,8 +1,9 @@
 from .pipeline import ProcessingStep
 import numpy as np
 import cv2
+import sys
 
-
+# Optical Flow Distance Moved Image 
 class Visualize(ProcessingStep):
 
     def __init__(self, freq):
@@ -45,14 +46,16 @@ class Visualize(ProcessingStep):
 
         # --- 2. Display, wait, and destroy ---
         window_name = 'Debug Step: Optical Flow'
-
         # Display the image
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         cv2.imshow(window_name, output_image)
         # Pause execution until a key is pressed
-        cv2.waitKey(0)
+        key = cv2.waitKey(0)
         # After a key is pressed, destroy the window
         cv2.destroyWindow(window_name)
+        # Quit only if 'q' or ESC pressed
+        if key == ord('q') or key == 27:  # 27 = ESC
+            sys.exit()
         # --- 3. Update the context and return ---
         context['visualized'] = output_image
         return context
