@@ -183,7 +183,7 @@ def images_to_video():
 def run_main(pipeline_steps):
     cv_pipeline = Pipeline(pipeline_steps)
 
-    cap = cv2.VideoCapture('data/No-Bubbling-Video.mp4')  # Or 0 for webcam
+    cap = cv2.VideoCapture('data/11_18-Vid11(1).mp4')  # Or 0 for webcam
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
