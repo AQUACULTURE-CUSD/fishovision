@@ -244,7 +244,7 @@ if __name__ == "__main__":
         # BrightnessAdjuster(30),
         OpticalFlowCalculator(0.2),
         # Visualize(100),
-        GraphData("output.csv", 30)
+        GraphData("output.csv", 30, 20)
     ]
     run_main(pipeline_steps)
 

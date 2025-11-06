@@ -3,6 +3,7 @@ import numpy as np
 from .pipeline import ProcessingStep
 from collections import deque
 
+
 class GraphData(ProcessingStep):
     """
     Saves the average length of a vector in context['tracks'] to a text file
@@ -10,10 +11,11 @@ class GraphData(ProcessingStep):
     Context Output:
     """
 
-    def __init__(self, outfile, fps):
+    def __init__(self, outfile, fps, windowSize):
         self.most_recent = deque()
         self.fps = fps
         self.outfile = outfile
+        self.window = windowSize
 
     def process(self, context: dict) -> dict:
         tracks = context.get('tracks')
@@ -27,7 +29,7 @@ class GraphData(ProcessingStep):
                 avg_len += l
                 count += 1
         avg_len /= count
-        if len(self.most_recent) < 9:
+        if len(self.most_recent) < (self.window - 1):
             self.most_recent.append(avg_len)
             return context
         else:
