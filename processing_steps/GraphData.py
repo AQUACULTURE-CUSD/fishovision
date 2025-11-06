@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from .pipeline import ProcessingStep
-
+from collections import deque
 
 class GraphData(ProcessingStep):
     """
@@ -10,7 +10,9 @@ class GraphData(ProcessingStep):
     Context Output:
     """
 
-    def __init__(self, outfile):
+    def __init__(self, outfile, fps):
+        self.most_recent = deque()
+        self.fps = fps
         self.outfile = outfile
 
     def process(self, context: dict) -> dict:
@@ -25,6 +27,12 @@ class GraphData(ProcessingStep):
                 avg_len += l
                 count += 1
         avg_len /= count
-        with open(self.outfile, 'a') as f:
-            f.write(f'{context['frame_number']}, {avg_len}\n')
+        if len(self.most_recent) < 9:
+            self.most_recent.append(avg_len)
+            return context
+        else:
+            self.most_recent.append(avg_len)
+            with open(self.outfile, 'a') as f:
+                f.write(f'{context['frame_number']/float(self.fps)}, {sum(self.most_recent)/len(self.most_recent)}\n')
+            self.most_recent.popleft()
         return context
