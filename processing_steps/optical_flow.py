@@ -34,8 +34,6 @@ class OpticalFlowCalculator(ProcessingStep):
         current_gray = context.get('current_frame')
         if current_gray is None:
             return context
-
-        print("Processing Optical Flow")
         if self.prev_gray is None:
             # Find initial features in the first frame
             self.prev_features = cv2.goodFeaturesToTrack(
