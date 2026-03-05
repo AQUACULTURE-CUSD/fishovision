@@ -39,13 +39,13 @@ def test_one_image(pipeline_steps):
     frames = [cv2.imread('data/frames/frame_ 000.jpg'), cv2.imread('data/frames/frame_ 005.jpg')]
     cv_pipeline = Pipeline(pipeline_steps)
     for frame in frames:
-        # 4. Prepare the context for this frame
+        # 1. Prepare the context for this frame
         process_context = {
             'original_frame': frame.copy(),
             'current_frame': frame.copy(),
             'frame_number': 0
         }
-        # 5. Run the pipeline
+        # 2. Run the pipeline
         context = cv_pipeline.run(process_context)
 
 
