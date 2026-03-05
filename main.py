@@ -48,9 +48,8 @@ def test_one_image(pipeline_steps):
         # 2. Run the pipeline
         context = cv_pipeline.run(process_context)
 
-
 '''
- pipeline steps, associated with files. 
+ RUNNING THE ANALYSIS ALGORITHMS: 
  Refer to comments or https://docs.google.com/document/d/1XnaYBOWkOAfA_JPGirxE1JfnxZRbWAsDbrj2eBJtMsM/edit?usp=sharing '''
 if __name__ == "__main__":
     pipeline_steps = [
@@ -71,5 +70,4 @@ if __name__ == "__main__":
         GraphData("output.csv", 30, 20)
     ]
     run_main(pipeline_steps)
-
     # test_one_image(pipeline_steps)
